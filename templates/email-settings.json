@@ -1,0 +1,19 @@
+{
+  "auth_email_templates": {
+    "confirm_signup": {
+      "subject": "Confirm your signup",
+      "content_html": "<h2>Confirm your signup</h2><p>Follow this link to confirm your signup:</p><p><a href=\"{{ .ConfirmationURL }}\">Confirm your email</a></p>",
+      "content_text": "Confirm your signup\n\nFollow this link to confirm your signup:\n\n{{ .ConfirmationURL }}"
+    },
+    "reset_password": {
+      "subject": "Reset your password",
+      "content_html": "<h2>Reset your password</h2><p>Follow this link to reset the password for your account:</p><p><a href=\"{{ .ConfirmationURL }}\">Reset password</a></p>",
+      "content_text": "Reset your password\n\nFollow this link to reset the password for your account:\n\n{{ .ConfirmationURL }}"
+    },
+    "magic_link": {
+      "subject": "Your login link",
+      "content_html": "<h2>Login to your account</h2><p>Follow this link to log in to your account:</p><p><a href=\"{{ .ConfirmationURL }}\">Log in</a></p>",
+      "content_text": "Login to your account\n\nFollow this link to log in to your account:\n\n{{ .ConfirmationURL }}"
+    }
+  }
+}

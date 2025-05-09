@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .stat-card {
+    @apply h-full min-h-[160px] flex flex-col;
+  }
+  
+  .stat-card .card-header {
+    @apply flex-shrink-0;
+  }
+  
+  .stat-card .card-content {
+    @apply flex-grow flex flex-col justify-between;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 221.2 83.2% 53.3%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+
+    /* Sidebar specific colors */
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-muted: 215.4 16.3% 46.9%;
+    --sidebar-accent: 221.2 83.2% 53.3%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 91.2% 59.8%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+
+    /* Sidebar specific colors for dark mode */
+    --sidebar-background: 222.2 47.4% 11.2%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 215 20.2% 65.1%;
+    --sidebar-accent: 217.2 91.2% 59.8%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom component styles */
+.gradient-button {
+  @apply bg-button-gradient hover:opacity-90 transition-opacity text-white font-medium shadow-md hover:shadow-lg;
+}
+
+.gradient-card {
+  @apply bg-card-gradient text-white shadow-md hover:shadow-lg transition-all;
+}
+
+.sidebar-item {
+  @apply flex items-center gap-3 px-3 py-2 rounded-md transition-all;
+}
+
+.sidebar-item-active {
+  @apply bg-primary text-primary-foreground font-medium;
+}
+
+.sidebar-item-inactive {
+  @apply text-sidebar-foreground hover:bg-sidebar-accent/10;
+}
+
+/* Sidebar menu item hover effects */
+.sidebar-menu-item {
+  @apply relative overflow-hidden;
+}
+
+/* Dashboard card hover effects */
+.stat-card {
+  @apply transition-all duration-300 cursor-pointer;
+}
+
+/* Dark mode adjustments */
+.dark .bg-hero-pattern {
+  @apply bg-gradient-to-r from-blue-700 to-purple-700;
+}
+
+.dark .gradient-button {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600;
+}
+
+.dark .gradient-card {
+  @apply bg-gradient-to-br from-blue-700 to-purple-700;
+}
+
+/* Animation utilities */
+.animate-in-slow {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* File card hover effects */
+.file-card {
+  @apply transition-all duration-200 hover:shadow-md hover:translate-y-[-2px];
+}
+
+/* Custom scrollbar for sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-sidebar-muted/30 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-sidebar-muted/50;
+}
+
+/* Ensure sidebar text is always visible */
+.sidebar-menu-item span,
+.sidebar-menu-item:hover span {
+  @apply opacity-100 visible transition-none;
+}
+
+.dark .sidebar-menu-item:hover {
+  @apply bg-gray-800/50;
+}
+
+.dark .sidebar-menu-item:hover span {
+  @apply text-white;
+}
+
+/* Tooltip styles */
+.dark [role="tooltip"] {
+  @apply bg-gray-800 border-gray-700 text-gray-100;
+}
+
+.dark [role="tooltip"] [data-arrow="true"] {
+  @apply border-gray-700 bg-gray-800;
+}
+
+/* Fix z-index for tooltips */
+[role="tooltip"] {
+  z-index: 100;
+}
+
+/* Ensure dropdowns appear above tooltips */
+[role="menu"] {
+  z-index: 200;
+}

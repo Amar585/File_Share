@@ -1,0 +1,84 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          updated_at: string | null
+          username: string | null
+          full_name: string | null
+          avatar_url: string | null
+          email: string | null
+          bio: string | null
+        }
+        Insert: {
+          id: string
+          updated_at?: string | null
+          username?: string | null
+          full_name?: string | null
+          avatar_url?: string | null
+          email?: string | null
+          bio?: string | null
+        }
+        Update: {
+          id?: string
+          updated_at?: string | null
+          username?: string | null
+          full_name?: string | null
+          avatar_url?: string | null
+          email?: string | null
+          bio?: string | null
+        }
+      }
+      files: {
+        Row: {
+          id: string
+          created_at: string
+          name: string
+          size: number
+          type: string
+          path: string
+          user_id: string
+          shared: boolean
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          name: string
+          size: number
+          type: string
+          path: string
+          user_id: string
+          shared?: boolean
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          name?: string
+          size?: number
+          type?: string
+          path?: string
+          user_id?: string
+          shared?: boolean
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+}
