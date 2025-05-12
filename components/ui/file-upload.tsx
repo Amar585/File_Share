@@ -310,9 +310,57 @@ export function FileUpload({ className }: FileUploadProps) {
   
           if (!uploadResult.success) {
             log.error(`Storage upload error for ${file.name}:`, uploadResult.error)
-            log.info(`Trying server-side upload as fallback...`)
-            // Try server-side upload as a fallback
-            const serverUploadResult = await tryServerUpload(file, user.id, onProgress) as { success: boolean; data?: any; error?: any }
+            log.info(`Trying server-side upload as fallback with encrypted file...`)
+            // Try server-side upload as a fallback - IMPORTANT: use encryptedFile not original file
+            // Also pass encryption metadata to server
+            const formData = new FormData()
+            formData.append('file', encryptedFile) // Use the encrypted file!
+            formData.append('userId', user.id)
+            formData.append('fileKey', fileKey)
+            formData.append('iv', iv)
+            formData.append('originalType', originalType)
+            formData.append('isEncrypted', 'true')
+            
+            // Using XMLHttpRequest to track upload progress
+            const serverUploadResult = await new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest()
+              
+              // Track upload progress
+              xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                  const percentComplete = Math.round((event.loaded / event.total) * 100)
+                  onProgress(percentComplete)
+                }
+              }
+              
+              // Handle completion
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  try {
+                    const result = JSON.parse(xhr.responseText)
+                    resolve(result)
+                  } catch (error) {
+                    reject(new Error('Invalid server response'))
+                  }
+                } else {
+                  try {
+                    const errorData = JSON.parse(xhr.responseText)
+                    reject(new Error(errorData.message || 'Server upload failed'))
+                  } catch (error) {
+                    reject(new Error(`Server upload failed: ${xhr.statusText}`))
+                  }
+                }
+              }
+              
+              // Handle errors
+              xhr.onerror = () => {
+                reject(new Error('Server upload request failed'))
+              }
+              
+              // Set up the request
+              xhr.open('POST', '/api/upload', true)
+              xhr.send(formData)
+            }) as { success: boolean; data?: any; error?: any }
             
             if (!serverUploadResult.success) {
               log.error(`Server-side upload also failed:`, serverUploadResult.error)

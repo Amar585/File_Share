@@ -24,7 +24,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { DelayedTooltip } from "@/components/ui/delayed-tooltip"
 import { useUser } from "@/hooks/use-user"
-import { useSearch } from "@/context/search-context"
 import { signOut } from "@/lib/actions/auth"
 import { useNotifications } from "@/hooks/use-notifications"
 import {
@@ -33,7 +32,6 @@ import {
   PopoverContent,
 } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { SearchResults } from "@/components/search-results"
 
 interface NavbarProps {
   className?: string
@@ -51,12 +49,6 @@ export function Navbar({ className }: NavbarProps) {
     markAllAsRead,
     deleteNotification
   } = useNotifications()
-  const {
-    query,
-    setQuery,
-    search,
-    setIsSearching
-  } = useSearch()
 
   const [avatarKey, setAvatarKey] = React.useState(Date.now())
 
@@ -118,24 +110,10 @@ export function Navbar({ className }: NavbarProps) {
           type="search"
           placeholder="Search files..."
           className="w-full rounded-md border bg-background/50 pl-10 pr-4 focus-visible:ring-brand-blue"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              search();
-              setIsSearching(true);
-            }
-          }}
-          onClick={() => {
-            if (query.trim() !== "") {
-              setIsSearching(true);
-            }
-          }}
         />
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
           <Search className="h-4 w-4 text-muted-foreground" />
         </div>
-        <SearchResults />
       </div>
       <div className="ml-auto flex items-center gap-4">
         <DelayedTooltip text="Switch between light and dark mode" position="bottom">

@@ -53,6 +53,7 @@ export function FileCard({
   shared,
   encryptionMetadata,
   isEncrypted,
+  originalType,
   onShareToggle,
   onDelete,
   className,
@@ -108,7 +109,6 @@ export function FileCard({
       }
       
       let fileToDownload = data;
-      let fileType = type;
       
       // Check if the file is encrypted
       if (isEncrypted) {
@@ -120,12 +120,15 @@ export function FileCard({
         
         try {
           console.log('Retrieving file key from server...')
-          setIsDownloading(true)
+          
+          // Show decryption status in the toast
+          const decryptionToast = toast.loading('Decrypting file...')
           
           // Fetch the file key from the server
           const response = await fetch(`/api/file-keys?fileId=${id}`)
           
           if (!response.ok) {
+            toast.dismiss(decryptionToast)
             const errorData = await response.json()
             console.error('Error response from file-keys API:', errorData)
             if (response.status === 403) {
@@ -140,19 +143,25 @@ export function FileCard({
           const keyData = await response.json()
           
           if (!keyData.success || !keyData.fileKey) {
+            toast.dismiss(decryptionToast)
             console.error('Invalid response from file-keys API:', keyData)
             throw new Error('Failed to retrieve file key. The file may be corrupted or inaccessible.')
           }
           
-          console.log('Decrypting file...')
+          // Use the original file type from props if available, or fall back to current type
+          const fileOriginalType = originalType || type;
+          
+          console.log('Decrypting file with original type:', fileOriginalType)
           fileToDownload = await decryptFile(
             data, 
             keyData.fileKey, 
             encryptionMetadata.iv, 
-            type,
+            fileOriginalType, // Use original type for proper mime type
             name
           );
-          fileType = type;
+          
+          toast.dismiss(decryptionToast)
+          toast.success('File decrypted successfully')
           console.log('File decrypted successfully')
         } catch (decryptError) {
           console.error('Decryption error:', decryptError)

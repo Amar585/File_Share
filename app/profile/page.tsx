@@ -71,7 +71,7 @@ export default function ProfilePage() {
       profileForm.reset({
         name: profile.full_name || "",
         email: user.email || "",
-        bio: profile.bio || "",
+        bio: "", // Initialize with empty bio if not available in your database
       })
     }
   }, [profile, user, profileForm])
@@ -91,7 +91,6 @@ export default function ProfilePage() {
     try {
       const { error } = await updateProfile({
         full_name: data.name,
-        bio: data.bio,
         updated_at: new Date().toISOString()
       })
       
