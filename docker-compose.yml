@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+      - NEXT_PUBLIC_VERCEL_URL=http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    restart: unless-stopped
+
+  # Include Supabase services for local development (optional)
+  supabase:
+    image: supabase/cli:latest
+    ports:
+      - "54321:54321" # PostgreSQL
+      - "54322:54322" # Studio
+      - "54323:54323" # Inbucket
+      - "54324:54324" # Auth
+      - "54325:54325" # REST
+      - "54326:54326" # Realtime
+      - "54327:54327" # Storage
+      - "54328:54328" # Edge Functions
+    environment:
+      - STUDIO_PORT=54322
+      - API_PORT=54321
+      - INBUCKET_PORT=54323
+      - AUTH_PORT=54324
+      - REST_PORT=54325
+      - REALTIME_PORT=54326
+      - STORAGE_PORT=54327
+      - FUNCTIONS_PORT=54328
+    volumes:
+      - ./supabase:/root/.supabase
+    command: start

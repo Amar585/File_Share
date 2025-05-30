@@ -2,34 +2,73 @@
 
 A secure file sharing platform built with Next.js and Supabase, featuring user authentication, file encryption, and access control.
 
-## Prerequisites
+## Setup Options
+
+You can run this project either using Docker (recommended) or local setup.
+
+## Option 1: Docker Setup (Recommended)
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Quick Start
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Amar585/File_Share.git
+cd file-sharing-platform
+```
+
+2. Create a `.env` file with your Supabase credentials:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
+
+3. Start the application:
+```bash
+docker-compose up --build
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000)
+
+### Using Local Supabase (Optional)
+The docker-compose configuration includes a local Supabase instance. To use it:
+
+1. Access Supabase Studio at [http://localhost:54322](http://localhost:54322)
+2. Run migrations:
+```bash
+docker-compose exec app node run-migration.js
+```
+
+## Option 2: Local Setup
+
+### Prerequisites
 
 Before you begin, ensure you have the following installed:
 - Node.js (v18 or higher)
 - npm (Node Package Manager)
 - A Supabase account (for database and authentication)
 
-## Setup Instructions
+### Setup Instructions
 
-### 1. Clone the Repository
-
+1. Clone the Repository:
 ```bash
 git clone https://github.com/Amar585/File_Share.git
 cd file-sharing-platform
 ```
 
-### 2. Supabase Setup
+2. Supabase Setup:
+   - Create a new project at [https://supabase.com](https://supabase.com)
+   - Go to Project Settings > API to get your:
+     - Project URL
+     - anon/public key
+     - service_role key (for migrations)
 
-1. Create a new project at [https://supabase.com](https://supabase.com)
-2. Once your project is created, go to Project Settings > API to get your:
-   - Project URL
-   - anon/public key
-   - service_role key (for migrations)
-
-### 3. Environment Configuration
-
-1. Create a `.env.local` file in the root directory:
-
+3. Environment Configuration:
+   Create a `.env.local` file:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -45,27 +84,20 @@ SMTP_PASS=your_smtp_password
 SENDER_EMAIL=your_sender_email
 ```
 
-### 4. Install Dependencies
-
+4. Install Dependencies:
 ```bash
 npm install
 ```
 
-### 5. Database Setup
-
-The project uses Supabase migrations to set up the database schema. Run the following command to execute the migrations:
-
+5. Database Setup:
 ```bash
 node run-migration.js
 ```
 
-### 6. Start the Development Server
-
+6. Start the Development Server:
 ```bash
 npm run dev
 ```
-
-The application will be available at [http://localhost:3000](http://localhost:3000)
 
 ## Features
 
@@ -91,8 +123,13 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 ## Troubleshooting
 
-If you encounter any issues:
+### Docker Setup Issues
+1. Ensure Docker and Docker Compose are properly installed
+2. Check if any services are using the required ports
+3. Try rebuilding the containers: `docker-compose up --build --force-recreate`
+4. Check container logs: `docker-compose logs -f`
 
+### Local Setup Issues
 1. Ensure all environment variables are correctly set
 2. Check if Supabase is properly configured
 3. Verify that all migrations have run successfully

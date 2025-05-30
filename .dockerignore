@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.git
+.env
+.env.*
+*.log
+npm-debug.log*
+.DS_Store
+.vscode
+coverage
+.idea
+.supabase
+project-for-professor.zip
