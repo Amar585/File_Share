@@ -51,6 +51,7 @@ export function useUser() {
                 full_name: session.user.user_metadata?.full_name || '',
                 avatar_url: session.user.user_metadata?.avatar_url || null,
                 email: session.user.email || null,
+                bio: '',
                 updated_at: new Date().toISOString()
               })
               .select()
@@ -64,6 +65,7 @@ export function useUser() {
                 full_name: session.user.user_metadata?.full_name || '',
                 avatar_url: null,
                 email: session.user.email || null,
+                bio: '',
                 updated_at: new Date().toISOString(),
                 created_at: new Date().toISOString()
               })
@@ -78,6 +80,7 @@ export function useUser() {
               full_name: session.user.user_metadata?.full_name || '',
               avatar_url: null,
               email: session.user.email || null,
+              bio: '',
               updated_at: new Date().toISOString(),
               created_at: new Date().toISOString()
             })
@@ -179,11 +182,45 @@ export function useUser() {
           const matches = urlPath.match(/\/storage\/v1\/object\/public\/avatar\/(.+)$/)
           if (matches && matches[1]) {
             oldAvatarPath = matches[1] // This should be user_id/filename
+            
+            // Use server-side API to ensure reliable deletion
+            try {
+              await fetch('/api/storage/delete-file', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  filePath: oldAvatarPath
+                })
+              });
+              console.log('Requested deletion of old avatar via server API')
+            } catch (err) {
+              console.warn('Failed to delete old avatar via server API:', err)
+              // Continue with upload even if deletion failed
+            }
           } else {
             // Try alternate format: just extract the filename after the last slash
             const oldFilename = decodeURIComponent(urlPath.split('/').pop() || '')
             if (oldFilename) {
               oldAvatarPath = `${user.id}/${oldFilename}`
+              
+              // Use server-side API to ensure reliable deletion for this alternate path
+              try {
+                await fetch('/api/storage/delete-file', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    filePath: oldAvatarPath
+                  })
+                });
+                console.log('Requested deletion of old avatar (alt path) via server API')
+              } catch (err) {
+                console.warn('Failed to delete old avatar (alt path) via server API:', err)
+                // Continue with upload even if deletion failed
+              }
             }
           }
           console.log('Old avatar path identified for deletion:', oldAvatarPath)

@@ -41,57 +41,73 @@ export default function StorageDetailsPage() {
   const { user } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    async function fetchStorageDetails() {
-      if (!user) return;
+  // Function to fetch storage details
+  const fetchStorageDetails = async () => {
+    if (!user) return;
 
-      try {
+    try {
+      // Only show loading indicator on initial load
+      if (isLoading) {
         setIsLoading(true);
-        
-        // Fetch all files for the user
-        const { data: files, error } = await supabase
-          .from("files")
-          .select("*")
-          .eq("user_id", user.id);
-
-        if (error) {
-          throw error;
-        }
-
-        // Calculate total size and categorize by file type
-        const totalSize = files?.reduce((sum, file) => sum + (file.size || 0), 0) || 0;
-        
-        // Group files by category
-        const categorizedData: { [key: string]: number } = {};
-        
-        files?.forEach(file => {
-          const category = getFileCategory(file.name);
-          categorizedData[category] = (categorizedData[category] || 0) + (file.size || 0);
-        });
-        
-        // Convert to chart data format
-        const chartData = Object.entries(categorizedData).map(([name, value]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize first letter
-          value: value,
-          percentage: ((value / totalSize) * 100).toFixed(1)
-        }));
-        
-        // Calculate storage metrics in MB
-        const usedStorageMB = totalSize / (1024 * 1024);
-        // In a real app, you would get the total storage limit from your user's plan
-        const totalStorageMB = 5 * 1024; // 5GB storage limit in MB
-        
-        setStorageData(chartData);
-        setTotalStorage(totalStorageMB);
-        setUsedStorage(usedStorageMB);
-      } catch (error: any) {
-        console.error("Error fetching storage details:", error);
-      } finally {
-        setIsLoading(false);
       }
-    }
+      
+      // Fetch all files for the user
+      const { data: files, error } = await supabase
+        .from("files")
+        .select("*")
+        .eq("user_id", user.id);
 
+      if (error) {
+        throw error;
+      }
+
+      // Calculate total size and categorize by file type
+      const totalSize = files?.reduce((sum, file) => sum + (file.size || 0), 0) || 0;
+      console.log('Total size of files:', totalSize, 'bytes');
+      
+      // Group files by category
+      const categorizedData: { [key: string]: number } = {};
+      
+      files?.forEach(file => {
+        const category = getFileCategory(file.name);
+        categorizedData[category] = (categorizedData[category] || 0) + (file.size || 0);
+      });
+      
+      // Convert to chart data format
+      const chartData = Object.entries(categorizedData).map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize first letter
+        value: value,
+        percentage: totalSize > 0 ? ((value / totalSize) * 100).toFixed(1) : '0.0'
+      }));
+      
+      // Calculate storage metrics in MB
+      const usedStorageMB = totalSize / (1024 * 1024);
+      console.log('Used storage:', usedStorageMB, 'MB');
+      
+      // In a real app, you would get the total storage limit from your user's plan
+      const totalStorageMB = 5 * 1024; // 5GB storage limit in MB
+      
+      setStorageData(chartData);
+      setTotalStorage(totalStorageMB);
+      setUsedStorage(usedStorageMB);
+    } catch (error: any) {
+      console.error("Error fetching storage details:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch on component mount
+  useEffect(() => {
     fetchStorageDetails();
+    
+    // Set up polling interval for real-time updates (every 10 seconds)
+    const intervalId = setInterval(() => {
+      fetchStorageDetails();
+    }, 10000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, [user]);
 
   return (
@@ -133,7 +149,12 @@ export default function StorageDetailsPage() {
                 <div className="flex items-center justify-center py-6">
                   <div className="storage-gauge relative flex items-center justify-center">
                     <div className="absolute text-center">
-                      <div className="text-5xl font-bold text-primary">{((usedStorage / totalStorage) * 100).toFixed(1)}%</div>
+                      {/* Fix percentage to show non-zero value when files exist and ensure proper formatting */}
+                      <div className="text-5xl font-bold text-primary">
+                        {usedStorage > 0 
+                          ? Math.max(0.1, (usedStorage / totalStorage) * 100).toFixed(1) 
+                          : "0.0"}%
+                      </div>
                       <div className="text-sm text-muted-foreground">Used</div>
                     </div>
                     <svg className="h-52 w-52" viewBox="0 0 100 100">
@@ -146,6 +167,7 @@ export default function StorageDetailsPage() {
                         strokeWidth="12"
                         className="dark:stroke-slate-800"
                       />
+                      {/* Ensure we show at least a small amount of the circle when files exist */}
                       <circle
                         cx="50"
                         cy="50"
@@ -154,7 +176,7 @@ export default function StorageDetailsPage() {
                         stroke="url(#storage-gradient)"
                         strokeWidth="12"
                         strokeDasharray={2 * Math.PI * 38}
-                        strokeDashoffset={2 * Math.PI * 38 * (1 - (usedStorage / totalStorage))}
+                        strokeDashoffset={2 * Math.PI * 38 * (1 - Math.max(0.001, usedStorage / totalStorage))}
                         strokeLinecap="round"
                         className="animate-dash"
                         style={{ 
@@ -178,7 +200,7 @@ export default function StorageDetailsPage() {
                       stroke-dashoffset: ${2 * Math.PI * 38};
                     }
                     to {
-                      stroke-dashoffset: ${2 * Math.PI * 38 * (1 - (usedStorage / totalStorage))};
+                      stroke-dashoffset: ${2 * Math.PI * 38 * (1 - Math.max(0.001, usedStorage / totalStorage))};
                     }
                   }
                   .animate-dash {

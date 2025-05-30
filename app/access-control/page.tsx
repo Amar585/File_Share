@@ -51,6 +51,28 @@ export default function AccessControlPage() {
     fetchSharedFiles()
   }, [user])
 
+  React.useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('public:files')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'files',
+        filter: `user_id=eq.${user.id}`
+      }, payload => {
+        if (payload.eventType === 'DELETE') {
+          setSharedFiles(prev => prev.filter(f => f.id !== (payload.old as FileRecord).id));
+        } else if (payload.eventType === 'INSERT') {
+          setSharedFiles(prev => [(payload.new as FileRecord), ...prev]);
+        } else if (payload.eventType === 'UPDATE') {
+          setSharedFiles(prev => prev.map(f => f.id === (payload.new as FileRecord).id ? (payload.new as FileRecord) : f));
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const handleShareToggle = async (file: FileRecord) => {
     if (!user) return
     
@@ -58,9 +80,9 @@ export default function AccessControlPage() {
     try {
       const { error } = await supabase
         .from("files")
-        .update({ shared: !file.shared })
-        .eq("id", file.id)
-        .eq("user_id", user.id)
+        .update({ shared: !file.shared } as any)
+        .eq("id", file.id as any)
+        .eq("user_id", user.id as any)
 
       if (error) {
         throw error
@@ -86,21 +108,49 @@ export default function AccessControlPage() {
     }
     
     setIsUpdating(true)
+    
     try {
-      // First delete from storage
-      const { error: storageError } = await supabase.storage
-        .from("files")
-        .remove([file.path])
-      
-      if (storageError) throw storageError
+      // First delete from storage using the server-side API
+      try {
+        const response = await fetch('/api/storage/delete-file', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filePath: file.path,
+            fileId: file.id,
+            userId: user?.id
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          console.error('Storage deletion error:', result.message);
+          toast.error(`Failed to delete file from storage: ${result.message}`);
+          setIsUpdating(false);
+          return; // Stop execution if storage deletion fails
+        }
+      } catch (storageError: any) {
+        console.error('Storage deletion error:', storageError);
+        toast.error(`Failed to delete file from storage: ${storageError.message}`);
+        setIsUpdating(false);
+        return; // Stop execution if storage deletion fails
+      }
 
-      // Then delete the database record
+      // Then delete the database record AFTER successful storage deletion
       const { error: dbError } = await supabase
         .from("files")
         .delete()
-        .eq("id", file.id)
+        .eq("id", file.id as any)
       
-      if (dbError) throw dbError
+      if (dbError) {
+        console.error('Database deletion error:', dbError);
+        toast.error(`Failed to delete file from database: ${dbError.message}`);
+        setIsUpdating(false);
+        return; // Stop if database deletion fails
+      }
 
       // Update local state
       setSharedFiles(prevFiles => prevFiles.filter(f => f.id !== file.id))

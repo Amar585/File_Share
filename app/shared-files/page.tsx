@@ -32,8 +32,8 @@ export default function SharedFilesPage() {
           const { data, error } = await supabase
             .from("files")
             .select("*")
-            .eq("user_id", user.id)
-            .eq("shared", true)
+            .eq("user_id", user.id as any)
+            .eq("shared", true as any)
             .order("created_at", { ascending: false })
 
           if (error) {
@@ -45,7 +45,7 @@ export default function SharedFilesPage() {
             throw error;
           }
 
-          setFiles(data || [])
+          setFiles((data as unknown as FileRecord[]) || [])
         } catch (e: any) {
           // If the error is about missing shared column, fall back to just getting user files
           if (e.message === "shared_column_missing") {
@@ -53,13 +53,13 @@ export default function SharedFilesPage() {
             const { data, error } = await supabase
               .from("files")
               .select("*")
-              .eq("user_id", user.id)
+              .eq("user_id", user.id as any)
               .order("created_at", { ascending: false })
 
             if (error) throw error;
             
             // Since we can't filter by shared, we'll just show all files
-            setFiles(data || []);
+            setFiles((data as unknown as FileRecord[]) || []);
             
             // Notify the user that migration is needed
             toast.error(
@@ -81,15 +81,37 @@ export default function SharedFilesPage() {
     fetchFiles()
   }, [user])
 
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('public:files')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'files',
+        filter: `user_id=eq.${user.id}`
+      }, payload => {
+        if (payload.eventType === 'DELETE') {
+          setFiles(prev => prev.filter(f => f.id !== (payload.old as FileRecord).id));
+        } else if (payload.eventType === 'INSERT') {
+          setFiles(prev => [(payload.new as FileRecord), ...prev]);
+        } else if (payload.eventType === 'UPDATE') {
+          setFiles(prev => prev.map(f => f.id === (payload.new as FileRecord).id ? (payload.new as FileRecord) : f));
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const handleShareToggle = async (id: string, shared: boolean) => {
     try {
       // First check if the shared column exists
       try {
         const { error } = await supabase
           .from("files")
-          .update({ shared: !shared })
-          .eq("id", id)
-          .eq("user_id", user?.id)
+          .update({ shared: (!shared) as boolean } as any)
+          .eq("id", id as any)
+          .eq("user_id", user?.id as any)
 
         if (error) {
           // Check if the error is about the missing shared column
@@ -111,6 +133,74 @@ export default function SharedFilesPage() {
       }
     } catch (error: any) {
       toast.error(`Failed to update sharing status: ${error.message}`)
+    }
+  }
+
+  const handleDelete = async (id: string, path: string) => {
+    try {
+      const deleteToast = toast.loading("Deleting file...");
+      
+      // First, attempt to delete the file from storage - CORRECT ORDER
+      console.log('Attempting to delete file from storage with path:', path);
+      
+      // Use server-side API for robust deletion
+      try {
+        const response = await fetch('/api/storage/delete-file', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            filePath: path,
+            fileId: id,
+            userId: user?.id
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          console.error('Server API deletion failed:', result.message);
+          
+          // Fall back to client-side deletion as a backup
+          const { error: storageError } = await supabase.storage.from("files").remove([path]);
+          
+          if (storageError) {
+            console.error('Supabase Storage deletion error:', storageError);
+            const errorMessage = storageError.message || JSON.stringify(storageError);
+            toast.dismiss(deleteToast);
+            toast.error(`Failed to delete file from storage: ${errorMessage}`);
+            return; // Stop execution if storage deletion fails
+          }
+        }
+      } catch (storageError: any) {
+        console.error('Storage deletion error:', storageError);
+        toast.dismiss(deleteToast);
+        toast.error(`Failed to delete file from storage: ${storageError.message}`);
+        return; // Stop execution if storage deletion fails
+      }
+      
+      console.log('File successfully deleted from storage. Attempting database deletion.');
+      
+      // Then delete the database record AFTER successful storage deletion
+      const { error: dbError } = await supabase.from("files").delete().eq("id", id as any);
+      
+      if (dbError) {
+        console.error('Database deletion error:', dbError);
+        toast.dismiss(deleteToast);
+        toast.error(`Failed to delete file from database: ${dbError.message}`);
+        return; // Stop execution if database deletion fails
+      }
+      
+      console.log('File deletion process completed. Updating UI.');
+      // Update local state
+      setFiles((prevFiles) => prevFiles.filter((file) => file.id !== id));
+      toast.dismiss(deleteToast);
+      toast.success("File deleted successfully");
+
+    } catch (error: any) {
+      console.error('Unexpected error during file deletion:', error);
+      toast.error(`An unexpected error occurred during deletion: ${error.message}`);
     }
   }
 
@@ -143,8 +233,16 @@ export default function SharedFilesPage() {
               <FileCard 
                 key={file.id} 
                 {...file} 
-                uploadedAt={new Date(file.created_at)} 
-                onShareToggle={() => handleShareToggle(file.id, file.shared)}
+                uploadedAt={typeof file.created_at === 'string' ? file.created_at : new Date(file.created_at).toISOString()} 
+                onShareToggle={() => handleShareToggle(file.id as string, !!file.shared)}
+                onDelete={() => handleDelete(file.id as string, file.path as string)}
+                isEncrypted={'is_encrypted' in file ? Boolean(file.is_encrypted) : false}
+                originalType={'original_type' in file ? String(file.original_type || '') : undefined}
+                encryptionMetadata={'encryption_metadata' in file ? 
+                  (typeof file.encryption_metadata === 'object' ? 
+                    { iv: String((file.encryption_metadata as any)?.iv || '') } : undefined) 
+                  : undefined
+                }
               />
             ))}
           </div>

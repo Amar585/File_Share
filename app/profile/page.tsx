@@ -71,7 +71,7 @@ export default function ProfilePage() {
       profileForm.reset({
         name: profile.full_name || "",
         email: user.email || "",
-        bio: "", // Initialize with empty bio if not available in your database
+        bio: profile.bio || "", // Initialize with bio from profile data
       })
     }
   }, [profile, user, profileForm])
@@ -91,6 +91,7 @@ export default function ProfilePage() {
     try {
       const { error } = await updateProfile({
         full_name: data.name,
+        bio: data.bio,
         updated_at: new Date().toISOString()
       })
       
@@ -210,6 +211,9 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <h3 className="text-lg font-medium">{profile?.full_name || ""}</h3>
                     <p className="text-sm text-muted-foreground">{user?.email || ""}</p>
+                    {profile?.bio && (
+                      <p className="text-sm max-w-md italic">{profile.bio}</p>
+                    )}
                     <input 
                       type="file" 
                       ref={fileInputRef}

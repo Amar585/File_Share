@@ -8,6 +8,7 @@ import { createClient } from "@supabase/supabase-js"
 
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { GlobalSearch } from "@/components/global-search"
 import { RefreshableAvatar } from "@/components/ui/refreshable-avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,6 +27,7 @@ import { DelayedTooltip } from "@/components/ui/delayed-tooltip"
 import { useUser } from "@/hooks/use-user"
 import { signOut } from "@/lib/actions/auth"
 import { useNotifications } from "@/hooks/use-notifications"
+import { useSearch } from "@/context/search-context"
 import {
   Popover,
   PopoverTrigger,
@@ -106,14 +108,7 @@ export function Navbar({ className }: NavbarProps) {
     >
       <SidebarTrigger className="mr-2" />
       <div className="relative flex-1 md:max-w-sm">
-        <Input
-          type="search"
-          placeholder="Search files..."
-          className="w-full rounded-md border bg-background/50 pl-10 pr-4 focus-visible:ring-brand-blue"
-        />
-        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-muted-foreground" />
-        </div>
+        <GlobalSearch />
       </div>
       <div className="ml-auto flex items-center gap-4">
         <DelayedTooltip text="Switch between light and dark mode" position="bottom">

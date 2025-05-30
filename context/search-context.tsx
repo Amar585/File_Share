@@ -46,9 +46,14 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   // Get the current user ID on component mount
   useEffect(() => {
     async function getUserId() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setUserId(user.id)
+      console.log('SearchContext: Getting user ID...')
+      const { data } = await supabase.auth.getUser()
+      console.log('SearchContext: Auth response:', data)
+      if (data?.user) {
+        console.log('SearchContext: User ID found:', data.user.id)
+        setUserId(data.user.id)
+      } else {
+        console.log('SearchContext: No user found in auth response')
       }
     }
     
@@ -56,9 +61,13 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const search = async (searchQuery?: string) => {
+    console.log('SearchContext: search() called with query:', searchQuery || query)
+    console.log('SearchContext: Current userId:', userId)
+    
     const finalQuery = searchQuery || query
     
     if (!finalQuery || finalQuery.trim() === "") {
+      console.log('SearchContext: Empty query, clearing results')
       setResults([])
       setIsSearching(false)
       return
@@ -66,18 +75,32 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 
     try {
       if (!userId) {
-        toast.error("You must be logged in to search files")
-        return
+        console.log('SearchContext: No userId available for search')
+        // Get the user ID if it's not set yet
+        const { data } = await supabase.auth.getUser()
+        if (data?.user) {
+          console.log('SearchContext: Just-in-time userId found:', data.user.id)
+          setUserId(data.user.id)
+        } else {
+          console.log('SearchContext: Failed to get userId, showing error')
+          toast.error("You must be logged in to search files")
+          return
+        }
       }
       
       setIsLoading(true)
       setIsSearching(true)
       
+      // Get the current userId (we need to check it's not null)
+      const currentUserId = userId as string
+
+      console.log('SearchContext: Searching with userId:', currentUserId)
+      
       // Search for my files
       const { data: myFiles, error: myFilesError } = await supabase
         .from("files")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", currentUserId)
         .ilike("name", `%${finalQuery}%`)
       
       if (myFilesError) {
@@ -88,7 +111,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       const { data: sharedFiles, error: sharedFilesError } = await supabase
         .from("files")
         .select("*")
-        .neq("user_id", userId)
+        .neq("user_id", currentUserId)
         .eq("shared", true)
         .ilike("name", `%${finalQuery}%`)
       
@@ -97,15 +120,19 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       }
       
       // Add section info to each file
-      const myFilesWithSection = (myFiles || []).map(file => ({
-        ...file,
-        section: "my-files"
-      }))
+      const myFilesWithSection = (myFiles || []).map(file => {
+        return {
+          ...file,
+          section: "my-files"
+        };
+      })
       
-      const sharedFilesWithSection = (sharedFiles || []).map(file => ({
-        ...file,
-        section: "shared-files"
-      }))
+      const sharedFilesWithSection = (sharedFiles || []).map(file => {
+        return {
+          ...file,
+          section: "shared-files"
+        };
+      })
       
       // Combine results
       const combinedResults = [...myFilesWithSection, ...sharedFilesWithSection]
