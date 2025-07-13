@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "configure-email": "node scripts/configure-supabase-email.mjs"
+    "configure-email": "node scripts/configure-supabase-email.mjs",
+    "postbuild": "echo 'Build completed successfully'"
   },
   "dependencies": {
     "@hookform/resolvers": "latest",

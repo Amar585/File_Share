@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Logo } from "@/components/ui/logo"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { Suspense } from "react"
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams?.get('error') || null
@@ -116,5 +117,24 @@ export default function LoginPage() {
         </div>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center mb-6">
+              <Logo />
+            </div>
+            <CardTitle className="text-2xl text-center">Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

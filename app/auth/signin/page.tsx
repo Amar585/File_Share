@@ -10,13 +10,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 import { VerificationAlert } from "@/components/auth/verification-alert"
+import { Suspense } from "react"
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") || "/dashboard"
-  const emailParam = searchParams.get("email") || ""
-  const verified = searchParams.get("verified") === "true"
+  const redirectTo = searchParams?.get("redirectTo") || "/dashboard"
+  const emailParam = searchParams?.get("email") || ""
+  const verified = searchParams?.get("verified") === "true"
   
   const [email, setEmail] = useState(emailParam)
   const [password, setPassword] = useState("")
@@ -199,5 +200,19 @@ export default function SignInPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold text-center mb-6">Loading...</h2>
+        </div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 } 

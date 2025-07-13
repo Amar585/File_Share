@@ -4,10 +4,11 @@ import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { AlertCircle } from "lucide-react"
+import { Suspense } from "react"
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
-  const error = searchParams.get("error") || "An unknown error occurred"
+  const error = searchParams?.get("error") || "An unknown error occurred"
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
@@ -57,5 +58,24 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900">Loading...</h2>
+          </div>
+        </div>
+      </div>
+    }>
+      <AuthErrorContent />
+    </Suspense>
   )
 } 

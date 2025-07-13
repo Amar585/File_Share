@@ -9,11 +9,12 @@ import { toast } from "sonner"
 import { AlertCircle, X } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/ui/logo"
+import { Suspense } from "react"
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const email = searchParams.get("email") || ""
+  const email = searchParams?.get("email") || ""
   const [resendDisabled, setResendDisabled] = useState(false)
   const [countdown, setCountdown] = useState(60)
   const [loading, setLoading] = useState(false)
@@ -132,5 +133,24 @@ export default function VerifyPage() {
         </CardFooter>
       </Card>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center mb-6">
+              <Logo />
+            </div>
+            <CardTitle className="text-2xl text-center">Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   )
 }

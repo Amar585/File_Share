@@ -4,18 +4,19 @@ import * as React from "react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowRight, Lock, Share2, Upload } from "lucide-react"
+import { Suspense } from "react"
 
 import { Button } from "@/components/ui/button"
 import { AuthModal } from "@/components/auth/auth-modal"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Logo } from "@/components/ui/logo"
 
-export default function LandingPage() {
+function LandingPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const verified = searchParams.get('verified') === 'true'
-  const showLogin = verified || searchParams.get('verified') === 'false' || searchParams.has('email')
-  const email = searchParams.get('email') || ""
+  const verified = searchParams?.get('verified') === 'true'
+  const showLogin = verified || searchParams?.get('verified') === 'false' || searchParams?.has('email')
+  const email = searchParams?.get('email') || ""
   
   // Set initial state based on URL parameters immediately
   const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(showLogin)
@@ -199,7 +200,7 @@ export default function LandingPage() {
 
       {modalMounted && (
         <AuthModal 
-          isOpen={isAuthModalOpen} 
+          isOpen={!!isAuthModalOpen} 
           onClose={() => setIsAuthModalOpen(false)} 
           defaultTab={authModalTab}
           verified={verified}
@@ -207,5 +208,27 @@ export default function LandingPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background">
+        <header className="border-b">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+            <Logo />
+            <ThemeToggle />
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold">Loading...</h1>
+          </div>
+        </main>
+      </div>
+    }>
+      <LandingPageContent />
+    </Suspense>
   )
 }
