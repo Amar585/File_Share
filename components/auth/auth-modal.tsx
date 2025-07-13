@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Github, Loader2, Mail, X, CheckCircle } from "lucide-react"
+import { Loader2, X, CheckCircle } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
@@ -208,21 +208,6 @@ export function AuthModal({ isOpen, onClose, defaultTab = "register", verified =
     }
   }
 
-  const handleOAuthLogin = async (provider: 'github' | 'google') => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-        }
-      })
-
-      if (error) throw error
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to login")
-    }
-  }
-
   if (!isOpen || !isClientSide) return null
 
   return (
@@ -325,34 +310,6 @@ export function AuthModal({ isOpen, onClose, defaultTab = "register", verified =
                     "Login"
                   )}
                 </Button>
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t"></span>
-                  </div>
-                  <span className="relative bg-card px-2 text-xs uppercase text-muted-foreground">
-                    OR CONTINUE WITH
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    className="border-muted/40"
-                    onClick={() => handleOAuthLogin('github')}
-                  >
-                    <Github className="mr-2 h-4 w-4" />
-                    GitHub
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    className="border-muted/40"
-                    onClick={() => handleOAuthLogin('google')}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Google
-                  </Button>
-                </div>
               </CardFooter>
             </form>
           </TabsContent>
@@ -405,34 +362,6 @@ export function AuthModal({ isOpen, onClose, defaultTab = "register", verified =
                     "Create Account"
                   )}
                 </Button>
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t"></span>
-                  </div>
-                  <span className="relative bg-card px-2 text-xs uppercase text-muted-foreground">
-                    OR CONTINUE WITH
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    className="border-muted/40"
-                    onClick={() => handleOAuthLogin('github')}
-                  >
-                    <Github className="mr-2 h-4 w-4" />
-                    GitHub
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    className="border-muted/40"
-                    onClick={() => handleOAuthLogin('google')}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Google
-                  </Button>
-                </div>
               </CardFooter>
             </form>
           </TabsContent>

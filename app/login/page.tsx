@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Github, Loader2, Mail } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const error = searchParams.get('error')
+  const error = searchParams?.get('error') || null
   const [isLoading, setIsLoading] = React.useState(false)
   const [formError, setFormError] = React.useState<string | null>(error)
   const supabase = createClientComponentClient()
@@ -106,24 +106,6 @@ export default function LoginPage() {
                 "Login"
               )}
             </Button>
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">OR CONTINUE WITH</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button" className="w-full">
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
-              </Button>
-              <Button variant="outline" type="button" className="w-full">
-                <Mail className="mr-2 h-4 w-4" />
-                Google
-              </Button>
-            </div>
           </CardFooter>
         </form>
         <div className="px-8 pb-8 text-center text-sm">
