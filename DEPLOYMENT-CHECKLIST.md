@@ -9,21 +9,30 @@
 - [x] Added .env.example template
 - [x] Updated package.json with postbuild script
 - [x] Committed and pushed all changes to GitHub
+- [x] Fixed lockfile issues (removed pnpm, using npm)
+- [x] Added TailwindCSS dependencies
+- [x] Resolved dependency conflicts
 
 ## 🚀 Deploy to Vercel (Your Next Steps)
+
+### ⚠️ IMPORTANT: Repository Selection
+
+**Make sure you select the correct repository:**
+- ✅ **Correct**: `Amar585/File_Share`
+- ❌ **Wrong**: `Amar585/file_sharing` or any other variant
 
 ### Step 1: Connect GitHub Repository
 1. Go to [vercel.com](https://vercel.com) and sign in
 2. Click "New Project"
-3. Import from GitHub: `Amar585/File_Share`
+3. **CRITICAL**: Import from GitHub: `Amar585/File_Share` (exact name)
 4. Click "Import"
 
 ### Step 2: Configure Project Settings
-- **Framework Preset**: Next.js
+- **Framework Preset**: Next.js (auto-detected)
 - **Root Directory**: `./` (keep default)
 - **Build Command**: `npm run build` (keep default)
 - **Output Directory**: `.next` (keep default)
-- **Install Command**: `npm install` (keep default)
+- **Install Command**: `npm install --legacy-peer-deps` (should be set by vercel.json)
 
 ### Step 3: Environment Variables
 Add these environment variables in Vercel dashboard:
